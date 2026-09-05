@@ -8,25 +8,19 @@ end
 def calculate_score(shots)
   total = 0
   index = 0
-
-  10.times do |frame_no|
-    if frame_no == 9
-      total += shots[index..].sum
-      break
-    end
-
+  9.times do
     if shots[index] == 10 # ストライク
-      total += 10 + shots[index + 1, 2].sum
+      total += shots[index, 3].sum
       index += 1
     elsif shots[index, 2].sum == 10 # スペア
-      total += 10 + shots[index + 2]
+      total += shots[index, 3].sum
       index += 2
     else
       total += shots[index, 2].sum
       index += 2
     end
   end
-
+  total += shots[index..].sum
   total
 end
 
