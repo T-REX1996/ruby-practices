@@ -9,16 +9,16 @@ def calculate_score(shots)
   total = 0
   index = 0
   9.times do
-    if shots[index] == 10 # ストライク
-      total += shots[index, 3].sum
-      index += 1
-    elsif shots[index, 2].sum == 10 # スペア
-      total += shots[index, 3].sum
-      index += 2
-    else
-      total += shots[index, 2].sum
-      index += 2
-    end
+    score_shot_count, thrown_shot_count =
+      if shots[index] == 10 # ストライク
+        [3, 1]
+      elsif shots[index, 2].sum == 10 # スペア
+        [3, 2]
+      else
+        [2, 2]
+      end
+    total += shots[index, score_shot_count].sum
+    index += thrown_shot_count
   end
   total += shots[index..].sum
   total
