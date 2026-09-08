@@ -1,3 +1,4 @@
+
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
@@ -10,6 +11,8 @@ def target_files(path)
 end
 
 def build_columns(files, column_count)
+  return [] if files.empty?
+
   row_count = (files.size.to_f / column_count).ceil
   files.each_slice(row_count).to_a
 end
