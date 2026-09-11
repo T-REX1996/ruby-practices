@@ -1,13 +1,31 @@
-
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'optparse'
+
 COLUMN_COUNT = 3
 
-def target_files(path)
-  Dir.entries(path)
-     .reject { |name| name.start_with?('.') }
-     .sort
+def main
+  options = parse_options(ARGV)
+  files = target_files(Dir.pwd, all: options[:all])
+  columns = build_columns(files, COLUMN_COUNT)
+  print_columns(columns)
+end
+
+def parse_options(argv)
+  options = { all: false }
+  OptionParser.new do |opts|
+    opts.on('-a', '--all', 'Do not ignore entries starting with .') do
+      options[:all] = true
+    end
+  end.parse!(argv)
+  options
+end
+
+def target_files(path, all: false)
+  entries = Dir.entries(path)
+  entries = entries.reject { |name| name.start_with?('.') } unless all
+  entries.sort
 end
 
 def build_columns(files, column_count)
@@ -29,12 +47,6 @@ def print_columns(columns)
                   .join
     puts line.rstrip
   end
-end
-
-def main
-  files = target_files(Dir.pwd)
-  columns = build_columns(files, COLUMN_COUNT)
-  print_columns(columns)
 end
 
 main if __FILE__ == $PROGRAM_NAME
