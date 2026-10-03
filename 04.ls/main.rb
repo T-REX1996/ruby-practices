@@ -7,25 +7,29 @@ COLUMN_COUNT = 3
 
 def main
   options = parse_options(ARGV)
-  files = target_files(Dir.pwd, all: options[:all])
+  files = target_files(Dir.pwd, all: options[:all], reverse: options[:reverse])
   columns = build_columns(files, COLUMN_COUNT)
   print_columns(columns)
 end
 
 def parse_options(argv)
-  options = { all: false }
+  options = { all: false, reverse: false }
   OptionParser.new do |opts|
     opts.on('-a', '--all', 'Do not ignore entries starting with .') do
       options[:all] = true
+    end
+    opts.on('-r', '--reverse', 'Reverse order while sorting') do
+      options[:reverse] = true
     end
   end.parse!(argv)
   options
 end
 
-def target_files(path, all: false)
+def target_files(path, all: false, reverse: false)
   entries = Dir.entries(path)
   entries = entries.reject { |name| name.start_with?('.') } unless all
-  entries.sort
+  entries = entries.sort
+  reverse ? entries.reverse : entries
 end
 
 def build_columns(files, column_count)
