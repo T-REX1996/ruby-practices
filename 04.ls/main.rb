@@ -1,13 +1,15 @@
-
 #!/usr/bin/env ruby
 # frozen_string_literal: true
 
+require 'optparse'
+
 COLUMN_COUNT = 3
 
-def target_files(path)
-  Dir.entries(path)
-     .reject { |name| name.start_with?('.') }
-     .sort
+def target_files(path, reverse: false)
+  files = Dir.entries(path)
+             .reject { |name| name.start_with?('.') }
+             .sort
+  reverse ? files.reverse : files
 end
 
 def build_columns(files, column_count)
@@ -32,7 +34,8 @@ def print_columns(columns)
 end
 
 def main
-  files = target_files(Dir.pwd)
+  params = ARGV.getopts('r')
+  files = target_files(Dir.pwd, reverse: params['r'])
   columns = build_columns(files, COLUMN_COUNT)
   print_columns(columns)
 end
