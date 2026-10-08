@@ -5,6 +5,7 @@ require 'optparse'
 require 'etc'
 
 COLUMN_COUNT = 3
+HALF_YEAR_DAYS = 180
 
 FILE_TYPES = {
   'file' => '-',
@@ -63,7 +64,7 @@ def format_permissions(stat)
 end
 
 def format_mtime(time)
-  half_year_ago = Time.now - (60 * 60 * 24 * 180)
+  half_year_ago = Time.now - (60 * 60 * 24 * HALF_YEAR_DAYS)
   time > half_year_ago ? time.strftime('%b %e %H:%M') : time.strftime('%b %e  %Y')
 end
 
