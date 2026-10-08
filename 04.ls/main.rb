@@ -99,7 +99,7 @@ def print_details(path, files)
   end
 
   details.each do |detail|
-    puts [
+    line = [
       "#{detail[:mode]} #{detail[:nlink].rjust(widths[:nlink])}",
       detail[:owner].ljust(widths[:owner]),
       detail[:group].ljust(widths[:group]),
@@ -107,6 +107,7 @@ def print_details(path, files)
       detail[:mtime],
       detail[:name]
     ].join(' ')
+    puts line
   end
 end
 
