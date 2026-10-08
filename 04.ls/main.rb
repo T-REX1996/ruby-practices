@@ -69,9 +69,7 @@ def format_mtime(time)
 end
 
 def format_name(path, name, stat)
-  return name unless stat.symlink?
-
-  "#{name} -> #{File.readlink(File.join(path, name))}"
+  stat.symlink? ? "#{name} -> #{File.readlink(File.join(path, name))}" : name
 end
 
 def build_detail(path, name)
