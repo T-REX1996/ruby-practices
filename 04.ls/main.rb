@@ -91,7 +91,8 @@ def print_details(path, files)
 
   details = files.map { |name| build_detail(path, name) }
   # File::Stat#blocks は 512 バイト単位。ls の total は 1024 バイト単位なので 2 で割る
-  puts "total #{details.sum { |detail| detail[:blocks] } / 2}"
+  total = details.sum { |detail| detail[:blocks] } / 2
+  puts "total #{total}"
 
   widths = %i[nlink owner group size].to_h do |key|
     [key, details.map { |detail| detail[key].length }.max]
