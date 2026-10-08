@@ -19,71 +19,23 @@ FILE_TYPES = {
 
 PERMISSIONS = %w[--- --x -w- -wx r-- r-x rw- rwx].freeze
 
+def main
+  params = ARGV.getopts('lr')
+  path = Dir.pwd
+  files = target_files(path, reverse: params['r'])
+
+  if params['l']
+    print_details(path, files)
+  else
+    print_columns(build_columns(files, COLUMN_COUNT))
+  end
+end
+
 def target_files(path, reverse: false)
   files = Dir.entries(path)
              .reject { |name| name.start_with?('.') }
              .sort
   reverse ? files.reverse : files
-end
-
-def build_columns(files, column_count)
-  return [] if files.empty?
-
-  row_count = (files.size.to_f / column_count).ceil
-  files.each_slice(row_count).to_a
-end
-
-def print_columns(columns)
-  return if columns.empty?
-
-  width = columns.flatten.map(&:length).max + 2
-  row_count = columns.map(&:size).max
-
-  row_count.times do |row|
-    line = columns.map { |column| column[row] }
-                  .map { |name| name.nil? ? '' : name.ljust(width) }
-                  .join
-    puts line.rstrip
-  end
-end
-
-def apply_special_bit(chars, enabled, special_char)
-  return chars unless enabled
-
-  chars[2] = chars[2] == 'x' ? special_char : special_char.upcase
-  chars
-end
-
-def format_permissions(stat)
-  mode = stat.mode
-  owner, group, other = [6, 3, 0].map { |shift| PERMISSIONS[(mode >> shift) & 0o7].dup }
-  apply_special_bit(owner, stat.setuid?, 's')
-  apply_special_bit(group, stat.setgid?, 's')
-  apply_special_bit(other, stat.sticky?, 't')
-  FILE_TYPES.fetch(stat.ftype) + owner + group + other
-end
-
-def format_mtime(time)
-  half_year_ago = Time.now - (60 * 60 * 24 * HALF_YEAR_DAYS)
-  time > half_year_ago ? time.strftime('%b %e %H:%M') : time.strftime('%b %e  %Y')
-end
-
-def format_name(path, name, stat)
-  stat.symlink? ? "#{name} -> #{File.readlink(File.join(path, name))}" : name
-end
-
-def build_detail(path, name)
-  stat = File.lstat(File.join(path, name))
-  {
-    blocks: stat.blocks,
-    mode: format_permissions(stat),
-    nlink: stat.nlink.to_s,
-    owner: Etc.getpwuid(stat.uid).name,
-    group: Etc.getgrgid(stat.gid).name,
-    size: stat.size.to_s,
-    mtime: format_mtime(stat.mtime),
-    name: format_name(path, name, stat)
-  }
 end
 
 def print_details(path, files)
@@ -111,15 +63,63 @@ def print_details(path, files)
   end
 end
 
-def main
-  params = ARGV.getopts('lr')
-  path = Dir.pwd
-  files = target_files(path, reverse: params['r'])
+def build_detail(path, name)
+  stat = File.lstat(File.join(path, name))
+  {
+    blocks: stat.blocks,
+    mode: format_permissions(stat),
+    nlink: stat.nlink.to_s,
+    owner: Etc.getpwuid(stat.uid).name,
+    group: Etc.getgrgid(stat.gid).name,
+    size: stat.size.to_s,
+    mtime: format_mtime(stat.mtime),
+    name: format_name(path, name, stat)
+  }
+end
 
-  if params['l']
-    print_details(path, files)
-  else
-    print_columns(build_columns(files, COLUMN_COUNT))
+def format_permissions(stat)
+  mode = stat.mode
+  owner, group, other = [6, 3, 0].map { |shift| PERMISSIONS[(mode >> shift) & 0o7].dup }
+  apply_special_bit(owner, stat.setuid?, 's')
+  apply_special_bit(group, stat.setgid?, 's')
+  apply_special_bit(other, stat.sticky?, 't')
+  FILE_TYPES.fetch(stat.ftype) + owner + group + other
+end
+
+def apply_special_bit(chars, enabled, special_char)
+  return chars unless enabled
+
+  chars[2] = chars[2] == 'x' ? special_char : special_char.upcase
+  chars
+end
+
+def format_mtime(time)
+  half_year_ago = Time.now - (60 * 60 * 24 * HALF_YEAR_DAYS)
+  time > half_year_ago ? time.strftime('%b %e %H:%M') : time.strftime('%b %e  %Y')
+end
+
+def format_name(path, name, stat)
+  stat.symlink? ? "#{name} -> #{File.readlink(File.join(path, name))}" : name
+end
+
+def build_columns(files, column_count)
+  return [] if files.empty?
+
+  row_count = (files.size.to_f / column_count).ceil
+  files.each_slice(row_count).to_a
+end
+
+def print_columns(columns)
+  return if columns.empty?
+
+  width = columns.flatten.map(&:length).max + 2
+  row_count = columns.map(&:size).max
+
+  row_count.times do |row|
+    line = columns.map { |column| column[row] }
+                  .map { |name| name.nil? ? '' : name.ljust(width) }
+                  .join
+    puts line.rstrip
   end
 end
 
