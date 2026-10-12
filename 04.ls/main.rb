@@ -20,11 +20,11 @@ FILE_TYPES = {
 PERMISSIONS = %w[--- --x -w- -wx r-- r-x rw- rwx].freeze
 
 def main
-  params = ARGV.getopts('lr')
+  options = ARGV.getopts('lr')
   path = Dir.pwd
-  files = target_files(path, reverse: params['r'])
+  files = target_files(path, reverse: options['r'])
 
-  if params['l']
+  if options['l']
     print_details(path, files)
   else
     print_columns(build_columns(files, COLUMN_COUNT))
