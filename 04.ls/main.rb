@@ -94,8 +94,11 @@ def apply_special_bit(chars, enabled, special_char)
 end
 
 def format_mtime(time)
-  half_year_ago = Time.now - (60 * 60 * 24 * HALF_YEAR_DAYS)
   time > half_year_ago ? time.strftime('%b %e %H:%M') : time.strftime('%b %e  %Y')
+end
+
+def half_year_ago
+  @half_year_ago ||= Time.now - (60 * 60 * 24 * HALF_YEAR_DAYS)
 end
 
 def format_name(path, name, stat)
