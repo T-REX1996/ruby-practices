@@ -79,18 +79,18 @@ end
 
 def format_permissions(stat)
   mode = stat.mode
-  owner, group, other = [6, 3, 0].map { |shift| PERMISSIONS[(mode >> shift) & 0o7].dup }
-  apply_special_bit(owner, stat.setuid?, 's')
-  apply_special_bit(group, stat.setgid?, 's')
-  apply_special_bit(other, stat.sticky?, 't')
+  owner, group, other = [6, 3, 0].map { |shift| PERMISSIONS[(mode >> shift) & 0o7] }
+  owner = apply_special_bit(owner, stat.setuid?, 's')
+  group = apply_special_bit(group, stat.setgid?, 's')
+  other = apply_special_bit(other, stat.sticky?, 't')
   FILE_TYPES.fetch(stat.ftype) + owner + group + other
 end
 
 def apply_special_bit(chars, enabled, special_char)
   return chars unless enabled
 
-  chars[2] = chars[2] == 'x' ? special_char : special_char.upcase
-  chars
+  execute_char = chars[2] == 'x' ? special_char : special_char.upcase
+  chars[0, 2] + execute_char
 end
 
 def format_mtime(time)
