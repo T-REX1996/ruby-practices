@@ -15,22 +15,13 @@ class Frame
     shots.sum(&:pins)
   end
 
-  # このフレームのボーナス計算に使う、後続のショット数
-  # 最終フレームはボーナスなし
-  def bonus_shot_count
-    return 0 if final?
-
-    if strike?
-      STRIKE_BONUS_SHOT_COUNT
-    elsif spare?
-      SPARE_BONUS_SHOT_COUNT
-    else
-      0
-    end
+  # 後続のショットから、このフレームのボーナス点を計算する
+  def bonus_score(following_shots)
+    following_shots.first(bonus_shot_count).sum(&:pins)
   end
 
   def strike?
-    first_shot.strike?
+    first_shot.all_pins_down?
   end
 
   def spare?
@@ -42,6 +33,19 @@ class Frame
   end
 
   private
+
+  # ボーナス計算に使う後続ショット数。最終フレームはボーナスなし
+  def bonus_shot_count
+    return 0 if final?
+
+    if strike?
+      STRIKE_BONUS_SHOT_COUNT
+    elsif spare?
+      SPARE_BONUS_SHOT_COUNT
+    else
+      0
+    end
+  end
 
   def first_shot
     shots[0]

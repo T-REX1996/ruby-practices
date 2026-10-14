@@ -10,7 +10,7 @@ class Shot
     @pins = mark == STRIKE_MARK ? MAX_PINS : mark.to_i
   end
 
-  def strike?
+  def all_pins_down?
     pins == MAX_PINS
   end
 end
