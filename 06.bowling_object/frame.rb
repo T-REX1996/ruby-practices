@@ -15,9 +15,9 @@ class Frame
     shots.sum(&:pins)
   end
 
-  # 後続のショットから、このフレームのボーナス点を計算する
-  def bonus_score(following_shots)
-    following_shots.first(bonus_shot_count).sum(&:pins)
+  # 後続のフレームから、このフレームのボーナス点を計算する
+  def bonus_score(following_frames)
+    following_frames.flat_map(&:shots).first(bonus_shot_count).sum(&:pins)
   end
 
   def strike?

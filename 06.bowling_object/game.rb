@@ -5,6 +5,8 @@ require_relative 'shot'
 
 class Game
   NORMAL_FRAME_COUNT = 9
+  # ボーナス計算に必要な後続ショットは最大2投。1フレームに最低1投あるので2フレームで足りる
+  BONUS_FRAME_COUNT = 2
 
   attr_reader :frames
 
@@ -15,8 +17,7 @@ class Game
 
   def score
     frames.each_with_index.sum do |frame, index|
-      following_shots = frames[(index + 1)..].flat_map(&:shots)
-      frame.score + frame.bonus_score(following_shots)
+      frame.score + frame.bonus_score(frames[index + 1, BONUS_FRAME_COUNT])
     end
   end
 
