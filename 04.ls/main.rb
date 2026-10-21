@@ -20,9 +20,9 @@ FILE_TYPES = {
 PERMISSIONS = %w[--- --x -w- -wx r-- r-x rw- rwx].freeze
 
 def main
-  options = ARGV.getopts('lr')
+  options = ARGV.getopts('alr')
   path = Dir.pwd
-  files = target_files(path, reverse: options['r'])
+  files = target_files(path, all: options['a'], reverse: options['r'])
 
   if options['l']
     print_details(path, files)
@@ -31,10 +31,9 @@ def main
   end
 end
 
-def target_files(path, reverse: false)
-  files = Dir.entries(path)
-             .reject { |name| name.start_with?('.') }
-             .sort
+def target_files(path, all: false, reverse: false)
+  files = Dir.entries(path).sort
+  files = files.reject { |name| name.start_with?('.') } unless all
   reverse ? files.reverse : files
 end
 
