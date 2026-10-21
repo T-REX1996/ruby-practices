@@ -2,34 +2,107 @@
 # frozen_string_literal: true
 
 require 'optparse'
+require 'etc'
 
 COLUMN_COUNT = 3
+HALF_YEAR_DAYS = 180
+
+FILE_TYPES = {
+  'file' => '-',
+  'directory' => 'd',
+  'link' => 'l',
+  'characterSpecial' => 'c',
+  'blockSpecial' => 'b',
+  'fifo' => 'p',
+  'socket' => 's'
+}.freeze
+
+PERMISSIONS = %w[--- --x -w- -wx r-- r-x rw- rwx].freeze
 
 def main
-  options = parse_options(ARGV)
-  files = target_files(Dir.pwd, all: options[:all], reverse: options[:reverse])
-  columns = build_columns(files, COLUMN_COUNT)
-  print_columns(columns)
+  options = ARGV.getopts('lr')
+  path = Dir.pwd
+  files = target_files(path, reverse: options['r'])
+
+  if options['l']
+    print_details(path, files)
+  else
+    print_columns(build_columns(files, COLUMN_COUNT))
+  end
 end
 
-def parse_options(argv)
-  options = { all: false, reverse: false }
-  OptionParser.new do |opts|
-    opts.on('-a', '--all', 'Do not ignore entries starting with .') do
-      options[:all] = true
-    end
-    opts.on('-r', '--reverse', 'Reverse order while sorting') do
-      options[:reverse] = true
-    end
-  end.parse!(argv)
-  options
+def target_files(path, reverse: false)
+  files = Dir.entries(path)
+             .reject { |name| name.start_with?('.') }
+             .sort
+  reverse ? files.reverse : files
 end
 
-def target_files(path, all: false, reverse: false)
-  entries = Dir.entries(path)
-  entries = entries.reject { |name| name.start_with?('.') } unless all
-  entries = entries.sort
-  reverse ? entries.reverse : entries
+def print_details(path, files)
+  return if files.empty?
+
+  details = files.map { |name| build_detail(path, name) }
+  # File::Stat#blocks は 512 バイト単位。ls の total は 1024 バイト単位なので 2 で割る
+  total = details.sum { |detail| detail[:blocks] } / 2
+  puts "total #{total}"
+
+  widths = %i[nlink owner group size].to_h do |key|
+    [key, details.map { |detail| detail[key].length }.max]
+  end
+
+  details.each do |detail|
+    line = [
+      "#{detail[:mode]} #{detail[:nlink].rjust(widths[:nlink])}",
+      detail[:owner].ljust(widths[:owner]),
+      detail[:group].ljust(widths[:group]),
+      detail[:size].rjust(widths[:size]),
+      detail[:mtime],
+      detail[:name]
+    ].join(' ')
+    puts line
+  end
+end
+
+def build_detail(path, name)
+  stat = File.lstat(File.join(path, name))
+  {
+    blocks: stat.blocks,
+    mode: format_permissions(stat),
+    nlink: stat.nlink.to_s,
+    owner: Etc.getpwuid(stat.uid).name,
+    group: Etc.getgrgid(stat.gid).name,
+    size: stat.size.to_s,
+    mtime: format_mtime(stat.mtime),
+    name: format_name(path, name, stat)
+  }
+end
+
+def format_permissions(stat)
+  mode = stat.mode
+  owner, group, other = [6, 3, 0].map { |shift| PERMISSIONS[(mode >> shift) & 0o7] }
+  owner = apply_special_bit(owner, stat.setuid?, 's')
+  group = apply_special_bit(group, stat.setgid?, 's')
+  other = apply_special_bit(other, stat.sticky?, 't')
+  FILE_TYPES.fetch(stat.ftype) + owner + group + other
+end
+
+def apply_special_bit(chars, enabled, special_char)
+  return chars unless enabled
+
+  execute_char = chars[2] == 'x' ? special_char : special_char.upcase
+  chars[0, 2] + execute_char
+end
+
+def format_mtime(time)
+  time > half_year_ago ? time.strftime('%b %e %H:%M') : time.strftime('%b %e  %Y')
+end
+
+def half_year_ago
+  @half_year_ago ||= Time.now - (60 * 60 * 24 * HALF_YEAR_DAYS)
+end
+
+def format_name(path, name, stat)
+  stat.symlink? ? "#{name} -> #{File.readlink(File.join(path, name))}" : name
 end
 
 def build_columns(files, column_count)
