@@ -1,0 +1,9 @@
+require 'rake/clean'
+
+CLEAN.include('fizzbuzz')
+
+task default: 'fizzbuzz'
+
+file 'fizzbuzz' => 'fizzbuzz.c' do
+  sh 'gcc -Wall -Wextra -o fizzbuzz fizzbuzz.c'
+end
