@@ -32,17 +32,21 @@ def total_counts(rows)
   end
 end
 
+def read_stdin_rows
+  [[nil, count_text($stdin.read)]]
+end
+
 def read_file_rows(paths)
-  paths.filter_map do |path|
+  paths.map do |path|
     [path, count_text(File.read(path))]
   rescue SystemCallError
-    warn "wc: #{path}: No such file or directory"
-    nil
+    abort "wc: #{path}: No such file or directory"
   end
 end
 
 def column_width(rows, keys)
   return 0 if keys.size == 1 && rows.size == 1
+  return STDIN_WIDTH if rows.first.first.nil?
 
   total_counts(rows)[:bytes].to_s.size
 end
@@ -51,13 +55,7 @@ def main
   options = ARGV.getopts('lwc')
   keys = selected_keys(options)
 
-  if ARGV.empty?
-    counts = count_text($stdin.read)
-    puts format_row(counts, keys, keys.size == 1 ? 0 : STDIN_WIDTH, nil)
-    return
-  end
-
-  rows = read_file_rows(ARGV)
+  rows = ARGV.empty? ? read_stdin_rows : read_file_rows(ARGV)
   width = column_width(rows, keys)
   rows.each { |path, counts| puts format_row(counts, keys, width, path) }
   puts format_row(total_counts(rows), keys, width, 'total') if rows.size > 1
