@@ -9,19 +9,20 @@ class FileList
     names = Dir.entries(directory).sort
     names = names.reject { |name| name.start_with?('.') } unless all
     names = names.reverse if reverse
-    new(names.map { |name| FileEntry.new(directory, name) })
+    file_entries = names.map { |name| FileEntry.new(directory, name) }
+    new(file_entries)
   end
 
-  def initialize(entries)
-    @entries = entries
+  def initialize(file_entries)
+    @file_entries = file_entries
   end
 
   def each(&block)
-    @entries.each(&block)
+    @file_entries.each(&block)
   end
 
   def empty?
-    @entries.empty?
+    @file_entries.empty?
   end
 
   def names
@@ -31,9 +32,5 @@ class FileList
   # File::Stat#blocks は 512 バイト単位。ls の total は 1024 バイト単位なので 2 で割る
   def total_blocks
     sum(&:blocks) / 2
-  end
-
-  def max_width(attribute)
-    map { |entry| entry.public_send(attribute).length }.max
   end
 end

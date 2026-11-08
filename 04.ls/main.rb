@@ -8,8 +8,8 @@ require_relative 'lib/long_format'
 
 def main
   options = ARGV.getopts('alr')
-  file_list = FileList.build(Dir.pwd, all: options['a'], reverse: options['r'])
-  format = options['l'] ? LongFormat.new(file_list) : ShortFormat.new(file_list)
+  file_entries = FileList.build(Dir.pwd, all: options['a'], reverse: options['r'])
+  format = options['l'] ? LongFormat.new(file_entries) : ShortFormat.new(file_entries)
   output = format.render
   puts output unless output.empty?
 end
