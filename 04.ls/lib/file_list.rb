@@ -1,9 +1,13 @@
 # frozen_string_literal: true
 
+require 'forwardable'
 require_relative 'file_entry'
 
 class FileList
+  extend Forwardable
   include Enumerable
+
+  def_delegators :@file_entries, :each, :empty?
 
   def self.build(directory, all: false, reverse: false)
     names = Dir.entries(directory).sort
@@ -15,14 +19,6 @@ class FileList
 
   def initialize(file_entries)
     @file_entries = file_entries
-  end
-
-  def each(&block)
-    @file_entries.each(&block)
-  end
-
-  def empty?
-    @file_entries.empty?
   end
 
   def names
