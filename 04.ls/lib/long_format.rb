@@ -82,7 +82,6 @@ class LongFormat
   end
 
   def format_name(file_entry)
-    link_target = file_entry.link_target
-    link_target ? "#{file_entry.name} -> #{link_target}" : file_entry.name
+    file_entry.symlink? ? "#{file_entry.name} -> #{file_entry.link_target}" : file_entry.name
   end
 end
