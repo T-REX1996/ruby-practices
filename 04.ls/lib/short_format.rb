@@ -20,7 +20,7 @@ class ShortFormat
 
   def build_columns
     row_count = @file_entries.count.ceildiv(@column_count)
-    @file_entries.names.each_slice(row_count).to_a
+    @file_entries.names.each_slice(row_count)
   end
 
   def build_row(columns, row_index, width)
