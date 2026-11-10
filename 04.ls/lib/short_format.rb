@@ -10,7 +10,8 @@ class ShortFormat
     return '' if @file_entries.empty?
 
     columns = build_columns
-    width = @file_entries.names.map(&:length).max + 2
+    max_name_length = @file_entries.names.map(&:length).max
+    width = max_name_length + 2
     row_count = columns.map(&:size).max
     Array.new(row_count) { |row_index| build_row(columns, row_index, width) }.join("\n")
   end
