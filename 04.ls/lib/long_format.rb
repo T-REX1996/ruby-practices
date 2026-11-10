@@ -24,7 +24,8 @@ class LongFormat
 
     rows = @file_entries.map { |file_entry| build_row(file_entry) }
     widths = %i[nlink owner group size].to_h do |key|
-      [key, rows.map { |row| row[key].length }.max]
+      max_width = rows.map { |row| row[key].length }.max
+      [key, max_width]
     end
     formatted_rows = rows.map { |row| format_row(row, widths) }
     ["total #{@file_entries.total_blocks}", *formatted_rows].join("\n")
