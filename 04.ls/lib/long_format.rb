@@ -46,7 +46,8 @@ class LongFormat
 
   def format_row(row, widths)
     [
-      "#{row[:mode]} #{row[:nlink].rjust(widths[:nlink])}",
+      row[:mode],
+      row[:nlink].rjust(widths[:nlink]),
       row[:owner].ljust(widths[:owner]),
       row[:group].ljust(widths[:group]),
       row[:size].rjust(widths[:size]),
